@@ -1,0 +1,19 @@
+Package: sqltools
+Type: Package
+Title: sqltools 
+Version: 0.4.1
+Authors@R: person("YiXiu", "Zhong", email = "obarisk@gmail.com", role = c("aut", "cre"))
+Description: sqltools
+Depends: R (>= 3.3.3)
+Imports:
+  httr,
+  RODBC,
+  stringr,
+  tidyverse
+Suggests: 
+  testthat,
+  quantmod
+License: WTFPL
+Encoding: UTF-8
+LazyData: TRUE
+RoxygenNote: 6.0.1
