@@ -62,6 +62,62 @@ my_qsg_fromdf <- function(dT, tablename, iLength=1024, tz=Sys.timezone(), Colnam
 
 }
 
+#' dataframe or tibble to PostgreSQL insert query string
+#'
+#' @param dT, a tibble
+#' @param tablename, table name
+#' @param iLength, max size(row) counts in KB, default = 1024
+#' @param tz, timezone
+#' @param Colnames, boolean whether include colnames inside query string, default = TRUE 
+#' @return a tibble of a segmented insert query string
+#' @examples 
+#' \dontrun{
+#'   require(tidyverse) 
+#'   mytbl <- tibble(a=c(1, 2, 3, 4), b=c('1', '2', '3', '4'), 
+#'     c=c(Sys.Date(), Sys.Date(), Sys.Date(), Sys.Date()))
+#'   pg_qsg_fromdf(mytbl, 'tmp') 
+#' } 
+#' @importFrom tibble as.tibble 
+#' @importFrom dplyr %>%
+#' @importFrom dplyr group_by 
+#' @importFrom dplyr mutate
+#' @importFrom dplyr select 
+#' @importFrom dplyr summarize 
+#' @importFrom dplyr row_number 
+#' @export 
+pg_qsg_fromdf <- function(dT, tablename, iLength=1024, tz=Sys.timezone(), Colnames=TRUE) {
+  
+  dT <- as.tibble(dT)
+  tQ <- tibbleiqs(dT, tz=tz)
+
+  if( grepl('"', tablename) ) {
+    tablename <- tablename
+  }else{
+    tablename <- paste0('"', tablename, '"')
+  }
+
+  myColnames <- paste0("(", paste0(pg_columnnames(tQ$Colnames), collapse=","), ")")
+  myLength <- floor(iLength / tQ$RowKB) # MySQL insert query string length limit
+
+  if( Colnames ) {
+    qsHeader <- sprintf("INSERT INTO %s %s VALUES ", tablename, myColnames)
+  }else{
+    qsHeader <- sprintf("INSERT INTO %s VALUES ", tablename)
+  }
+
+  QueryStrings <- tQ$QueryStrings %>% 
+    mutate(
+      Group = ceiling(row_number()/myLength)
+    ) %>%
+    group_by(Group) %>%
+    summarize(QueryString = paste0(QueryString, collapse=",")) %>%
+    mutate(QueryString = paste0(qsHeader, QueryString)) %>%
+    select(QueryString)
+
+  return(QueryStrings)
+
+}
+
 #' dataframe or tibble to MSSQL insert query string
 #'
 #' @param dT, a tibble
