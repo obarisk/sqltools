@@ -20,6 +20,11 @@ sqlstring.default <- function(x, ...) {
   ifelse(is.na(x), 'NULL', paste0("'", x, "'"))
 
 }
+sqlstring.character <- function(x, ...) {
+
+  gsub("'", "''", x)
+
+}
 sqlstring.POSIXct <- function(x, tz=Sys.timezone(), ...) {
 
   ifelse(is.na(x), 'NULL', format(x, format="'%Y/%m/%d %H:%M:%S'", tz=tz))
