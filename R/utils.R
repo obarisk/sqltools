@@ -22,7 +22,7 @@ sqlstring.default <- function(x, ...) {
 }
 sqlstring.character <- function(x, ...) {
 
-  gsub("'", "''", x)
+  paste0("'", gsub("'", "''", x), "'")
 
 }
 sqlstring.POSIXct <- function(x, tz=Sys.timezone(), ...) {
